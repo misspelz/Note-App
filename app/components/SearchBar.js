@@ -5,7 +5,7 @@ import Colors from '../misc/Colors'
 const SearchBar = ({containerStyle}) => {
   return (
     <View style={[styles.container, {...containerStyle}]}>
-      <TextInput style={styles.searchbar} placeholder='Search Here...' />
+      <TextInput style={styles.searchbar} placeholder='Search Here...' placeholderTextColor={Colors.PRIMARY} />
     </View>
   )
 }
@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
         borderRadius: 40,
         paddingLeft: 15,
         fontSize: 15,
-        color: Colors.PRIMARY,
+        color: Colors.DARK,
         outlineStyle: "none"
     }
 })

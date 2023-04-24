@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingLeft: 15,
     fontSize: 18,
-    color: Colors.PRIMARY,
+    color: Colors.DARK,
     outlineStyle: "none",
     marginBottom: 15,
   },

@@ -1,15 +1,38 @@
-import { StyleSheet, Text, View, Modal, TextInput } from "react-native";
-import React from "react";
+import {
+  StyleSheet,
+  Text,
+  View,
+  Modal,
+  TextInput,
+  TouchableWithoutFeedback,
+  Keyboard,
+} from "react-native";
+import React, { useState } from "react";
 import Colors from "../misc/Colors";
-import { TouchableWithoutFeedback } from "react-native-web";
+import RoundIconBtn from "./RoundIconBtn";
 
-const NoteInputModal = ({ visible }) => {
+const NoteInputModal = ({ visible, onClose, onSubmit }) => {
+  const [title, setTitle] = useState("");
+  const [desc, setDesc] = useState("");
+  console.log({ title, desc });
 
-  const handleModalClose = ()=>{
+  const handleModalClose = () => {
+    Keyboard.dismiss(); // to dismiss keyboard on input
+  };
 
+  const handleSubmit = () => {
+    if (!title.trim() && !desc.trim()) return onClose();
+    onSubmit(title, desc);
+    setTitle("");
+    setDesc("");
+    onClose();
+  };
+
+  const closeModal = ()=>{
+    setTitle("");
+    setDesc("");
+    onClose();
   }
-
-
 
   return (
     <Modal visible={visible}>
@@ -18,16 +41,35 @@ const NoteInputModal = ({ visible }) => {
           placeholder="Title"
           placeholderTextColor={Colors.PRIMARY}
           style={[styles.input, styles.title]}
+          value={title}
+          // name="title"
+          onChangeText={(value) => setTitle(value)}
         />
         <TextInput
           multiline
           placeholder="Note"
           placeholderTextColor={Colors.PRIMARY}
           style={[styles.input, styles.desc]}
+          value={desc}
+          // name="desc"
+          onChangeText={(value) => setDesc(value)}
         />
       </View>
+
+      <View style={styles.submitBtns}>
+        <RoundIconBtn
+          antIconName="check"
+          size={15}
+          style={styles.style}
+          onPress={handleSubmit}
+        />
+        {title.trim() || desc.trim() ? (
+          <RoundIconBtn antIconName="close" size={15} style={styles.style} onPress={closeModal} />
+        ) : null}
+      </View>
+
       <TouchableWithoutFeedback onPress={handleModalClose}>
-        <View style={[styles.modalBG, StyleSheet.absoluteFillObject]}  />
+        <View style={[styles.modalBG, StyleSheet.absoluteFillObject]} />
       </TouchableWithoutFeedback>
     </Modal>
   );
@@ -54,9 +96,18 @@ const styles = StyleSheet.create({
   desc: {
     height: 100,
   },
-  modalBG:{
-    // backgroundColor: "red",
+  modalBG: {
     flex: 1,
-    zIndex: -1
-  }
+    zIndex: -1,
+  },
+  submitBtns: {
+    flexDirection: "row",
+    gap: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 30,
+  },
+  style: {
+    backgroundColor: "#023047",
+  },
 });
