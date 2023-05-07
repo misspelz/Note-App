@@ -5,20 +5,25 @@ import {
   Text,
   TouchableWithoutFeedback,
   View,
-  Dimensions
+  Dimensions,
 } from "react-native";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import SearchBar from "../components/SearchBar";
 import RoundIconBtn from "../components/RoundIconBtn";
 import NoteInputModal from "../components/NoteInputModal";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import NoteCard from "../components/NoteCard";
+import { useNotes } from "../context/NoteProvider";
+import NotFound from "../components/NotFound";
 
-const NoteScreen = ({ user }) => {
+const NoteScreen = ({ user, navigation }) => {
+  // use context
+  const { notes, setNotes, getNotes } = useNotes();
+
   const [greet, setGreet] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
-  const [notes, setNotes] = useState([]);
-  console.log(notes);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [resultNotFound, setResultNotFound] = useState(false);
 
   useEffect(() => {
     getNotes();
@@ -33,11 +38,7 @@ const NoteScreen = ({ user }) => {
     setGreet("Evening");
   };
 
-  const getNotes = async () => {
-    const result = await AsyncStorage.getItem("notes");
-    // console.log(result)
-    if (result !== null) setNotes(JSON.parse(result));
-  };
+  // get notes function is in context
 
   const handleOnSubmit = async (title, desc) => {
     const note = {
@@ -52,23 +53,67 @@ const NoteScreen = ({ user }) => {
     await AsyncStorage.setItem("notes", JSON.stringify(updatedNotes));
   };
 
+  const openNote = (note) => {
+    navigation.navigate("NoteDetails", { note });
+  };
+
+  const handleSearchInput = async (text) => {
+    setSearchQuery(text);
+
+    if (!text.trim()) {
+      setSearchQuery("");
+      setResultNotFound(false);
+      // handleClearSearch()
+      return await getNotes();
+    }
+
+    const filteredNotes = notes.filter((note) => {
+      if (note.title.toLowerCase().includes(text.toLowerCase())) {
+        return note;
+      }
+    });
+
+    if (filteredNotes.length) {
+      setNotes([...filteredNotes]);
+    } else {
+      setResultNotFound(true);
+    }
+  };
+
+  // handle clear search
+  const handleClearSearch = async () => {
+    setSearchQuery("");
+    setResultNotFound(false);
+    await getNotes();
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.header}>{`Good ${greet} ${user.name}`}</Text>
 
-      {notes.length > 0 && <SearchBar containerStyle={{}} />}
+      {notes.length > 0 && (
+        <SearchBar
+          value={searchQuery}
+          onChangeText={handleSearchInput}
+          onClear={handleClearSearch}
+        />
+      )}
 
-      <FlatList
-        data={notes}
-        numColumns={2}
-        columnWrapperStyle={{justifyContent: "space-between"}}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View>
-            <NoteCard item={item} />
-          </View>
-        )}
-      />
+      {resultNotFound ? (
+        <NotFound />
+      ) : (
+        <FlatList
+          data={notes}
+          numColumns={2}
+          columnWrapperStyle={{ justifyContent: "space-between" }}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <View>
+              <NoteCard onPress={() => openNote(item)} item={item} />
+            </View>
+          )}
+        />
+      )}
 
       {!notes.length > 0 && (
         <View
@@ -94,8 +139,6 @@ const NoteScreen = ({ user }) => {
 };
 
 export default NoteScreen;
-
-
 
 const styles = StyleSheet.create({
   container: {

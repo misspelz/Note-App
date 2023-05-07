@@ -7,14 +7,20 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Colors from "../misc/Colors";
 import RoundIconBtn from "./RoundIconBtn";
 
-const NoteInputModal = ({ visible, onClose, onSubmit }) => {
+const NoteInputModal = ({ visible, onClose, onSubmit, note, isEdit }) => {
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
-  console.log({ title, desc });
+
+  useEffect(() => {
+    if (isEdit) {
+      setTitle(note.title);
+      setDesc(note.desc);
+    }
+  }, [isEdit]);
 
   const handleModalClose = () => {
     Keyboard.dismiss(); // to dismiss keyboard on input
@@ -22,17 +28,25 @@ const NoteInputModal = ({ visible, onClose, onSubmit }) => {
 
   const handleSubmit = () => {
     if (!title.trim() && !desc.trim()) return onClose();
-    onSubmit(title, desc);
-    setTitle("");
-    setDesc("");
+
+    if (isEdit) {
+      onSubmit(title, desc, Date.now())
+    } else {
+      onSubmit(title, desc);
+      setTitle("");
+      setDesc("");
+    }
     onClose();
   };
 
-  const closeModal = ()=>{
-    setTitle("");
-    setDesc("");
+  const closeModal = () => {
+    if (!isEdit) {
+      setTitle("");
+      setDesc("");
+    }
+
     onClose();
-  }
+  };
 
   return (
     <Modal visible={visible}>
@@ -64,7 +78,12 @@ const NoteInputModal = ({ visible, onClose, onSubmit }) => {
           onPress={handleSubmit}
         />
         {title.trim() || desc.trim() ? (
-          <RoundIconBtn antIconName="close" size={15} style={styles.style} onPress={closeModal} />
+          <RoundIconBtn
+            antIconName="close"
+            size={15}
+            style={styles.style}
+            onPress={closeModal}
+          />
         ) : null}
       </View>
 
